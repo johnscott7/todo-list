@@ -1,4 +1,7 @@
+from uuid import uuid4
+
 from flask import (
+    flash,
     Flask,
     redirect,
     render_template,
@@ -21,22 +24,30 @@ def index():
 
 @app.route("/lists")
 def get_lists():
-    lists = [
-        {"title": "Lunch Groceries", "todos": []},
-        {"title": "Dinner Groceries", "todos": []},
-    ]
     return render_template('lists.html', lists=session['lists'])
 
 @app.route("/lists", methods=["POST"])
 def create_list():
     title = request.form["list_title"].strip()
-    session['lists'].append({
-        'id': str(uuid4()),
-        'title': title,
-        'todos': [],
-    })
-    session.modified = True
-    return redirect(url_for('get_lists'))
+
+    if any(lst['title'] == title for lst in session['lists']):
+        flash("The title must be unique.", "error")
+        return render_template('new_list.html', title=title)
+
+    if 1 <= len(title) <= 100:
+        session['lists'].append({
+            'id': str(uuid4()),
+            'title': title,
+            'todos': []
+        })
+        flash("The list has been created.", "success")
+        session.modified = True
+        return redirect(url_for('get_lists'))
+
+
+
+    flash("The title must be between 1 and 100 characters.", "error")
+    return render_template('new_list.html', title=title)
 
 @app.route("/lists/new")
 def add_todo_list():
