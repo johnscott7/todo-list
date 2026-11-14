@@ -25,7 +25,7 @@ from todos.utils import (
 )
 
 app = Flask(__name__)
-app.secret_key='secret1'
+app.secret_key = os.environ["SECRET_KEY"]
 
 def require_list(f):
     @wraps(f)
